@@ -1,6 +1,7 @@
-package src.master;
+package master;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -8,7 +9,7 @@ import java.net.Socket;
 
 public class Master {
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		if (args.length != 2) {
 			System.err.println("Usage: java clientCode <host name> <port number>");
@@ -55,7 +56,7 @@ public class Master {
 			
 			//Master determines which slave to assign job to
 			//If the slave optimized for job has 5 current jobs, and other slave has less than 5, send to not optimized slave.
-			String chosenSlave;
+			String chosenSlave = null;
 			if(jobType.equalsIgnoreCase("A")) {
 				if(slaveAJobs < 5) {
 					//send to slave A - clientSocket2
@@ -97,8 +98,9 @@ public class Master {
 			
 			
 			//Master reads in job completion confirmation from slave
+			String isComplete;
 			if(chosenSlave.equals("A")) {
-				String isComplete = in2.readLine();
+				isComplete = in2.readLine();
 			}
 			else {
 				isComplete = in3.readLine();

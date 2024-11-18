@@ -1,4 +1,4 @@
-package src.slaves;
+package slaves;
 
 import java.io.BufferedReader;
 import java.io.IOException;
