@@ -1,6 +1,7 @@
 package client;
 import java.io.*;
 import java.net.*;
+import java.util.Random;
 
 
 public class Client {
@@ -34,17 +35,31 @@ public class Client {
         	 * The client’s submission should include the type, and an ID number that will be used to 
         	 * identify the job throughout the system
         	 */
-        	//for now basic job information is hard coded in
-        	//job type
-        	String type = "A";
-        	//ID number
-        	String id = "1234";
+        	//started on logic for jobs, left ID threading as if only one client...
+            Random rand = new Random();
+            String type;
+            String id;
+
+            //can add another random element for i if we want to randomize number of jobs.
+            for(int i = 0; i < 20; i++){
+                rand.nextInt(2);
+                if(rand == 0){
+                    //job type
+                    type = "A";
+                    }
+                else{
+                    type = "B";
+                }
+                    //id number
+        	        String id = Integer.toString(Integer.parseInt(id)+1)
+                }
+                //first send job type to master
+        	    requestWriter.println(type);
+        	    //then id number
+        	    requestWriter.println(id);
+            }
         	
-        	//first send job type to master
-        	requestWriter.println(type);
-        	//then id number
-        	requestWriter.println(id);
-      
+        	
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
@@ -52,6 +67,6 @@ public class Client {
             System.err.println("Couldn't get I/O for the connection to " +
                 hostName);
             System.exit(1);
+
         } 
     }
-}
