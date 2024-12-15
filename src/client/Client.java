@@ -37,26 +37,26 @@ public class Client {
         	 */
         	//started on logic for jobs, left ID threading as if only one client...
             Random rand = new Random();
-            String type;
-            String id;
+            int id =0;
 
             //can add another random element for i if we want to randomize number of jobs.
             for(int i = 0; i < 20; i++){
-                rand.nextInt(2);
-                if(rand == 0){
-                    //job type
-                    type = "A";
-                    }
-                else{
-                    type = "B";
-                }
-                    //id number
-        	        String id = Integer.toString(Integer.parseInt(id)+1)
-                }
+               String type = rand.nextInt(2) == 0 ? "A" : "B";
+		 id++;
+                
+                 
+                
                 //first send job type to master
         	    requestWriter.println(type);
         	    //then id number
         	    requestWriter.println(id);
+	     // Receive confirmation from master
+                String confirmation = responseReader.readLine();
+                if (confirmation != null) {
+                    System.out.println("Received confirmation from master: " + confirmation);
+                } else {
+                    System.err.println("No response from master for job: " + type + " " + id);
+                }
             }
         	
         	
@@ -70,3 +70,4 @@ public class Client {
 
         } 
     }
+}
