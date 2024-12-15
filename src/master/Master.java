@@ -17,28 +17,18 @@ public class Master {
 		}
 		int portNumber = Integer.parseInt(args[0]);
 		
-		try (
-			    //Create a new socket for server
-			     ServerSocket serverSocket =
-			         new ServerSocket(Integer.parseInt(args[0]));
-			     //Create clientSocket - server gets input from client
-			      Socket clientSocket1 = serverSocket.accept();
-				  Socket clientSocket2 = serverSocket.accept();
-				  Socket clientSocket3 = serverSocket.accept();
-			        //Gives access to output stream - server writes to other side in socket
-			       PrintWriter out1 =
-			          new PrintWriter(clientSocket1.getOutputStream(), true);
-				PrintWriter out2 =
-				          new PrintWriter(clientSocket2.getOutputStream(), true);
-				PrintWriter out3 =
-				          new PrintWriter(clientSocket3.getOutputStream(), true);
-			        //Gives access to input stream - server reads from client - inputStream allows socket to receive data
-			       BufferedReader in1 = new BufferedReader(
-			           new InputStreamReader(clientSocket1.getInputStream()));
-				BufferedReader in2 = new BufferedReader(
-				           new InputStreamReader(clientSocket2.getInputStream()));
-				BufferedReader in3 = new BufferedReader(
-				           new InputStreamReader(clientSocket3.getInputStream()));
+		
+			 try (
+                      ServerSocket serverSocket = new ServerSocket(portNumber);
+                      Socket clientSocket1 = serverSocket.accept();
+                      Socket clientSocket2 = serverSocket.accept();
+                      Socket clientSocket3 = serverSocket.accept();
+                      PrintWriter out1 = createWriter(clientSocket1);
+                      PrintWriter out2 = createWriter(clientSocket2);
+                      PrintWriter out3 = createWriter(clientSocket3);
+                      BufferedReader in1 = createReader(clientSocket1);
+                      BufferedReader in2 = createReader(clientSocket2);
+                      BufferedReader in3 = createReader(clientSocket3);
 			       ) {
 			//Counters to keep track of amount of current jobs for each slave
 			int slaveAJobs = 0;
@@ -48,6 +38,10 @@ public class Master {
 			do {
 			//Master reads in job from client - clientSocket1
 			job = in1.readLine();
+	               if (job == null || job.trim().isEmpty()) {
+                        System.err.println("Invalid job received from client. Ending connection.");
+                         break;
+                            }
 			
 			//Master determines job type (first character) and ID number (second word)
 			String jobType = job.substring(0, job.indexOf(" "));
@@ -85,10 +79,11 @@ public class Master {
                                slaveBJobs++; // Increment job counter for Slave B
                                  }
                               }
+             
 
                 // Master reads in job completion confirmation from slave
               String isComplete;
-           if (chosenSlave.equals("A")) {
+           if ("A".equals(chosenSlave)) {
                isComplete = in2.readLine();
              slaveAJobs--; // Decrement job counter for Slave A
            } else {
@@ -101,7 +96,15 @@ public class Master {
 
 			
 			}
-			while(job != null);
+		while(job != null);
 		}
-	}
+	       }
+          private static PrintWriter createWriter(Socket socket) throws IOException {
+         return new PrintWriter(socket.getOutputStream(), true);
+          }
+
+          private static BufferedReader createReader(Socket socket) throws IOException {
+            return new BufferedReader(new InputStreamReader(socket.getInputStream()));
+}
+
 }
