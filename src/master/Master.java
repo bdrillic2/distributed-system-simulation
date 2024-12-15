@@ -56,57 +56,49 @@ public class Master {
 			//Master determines which slave to assign job to
 			//If the slave optimized for job has 5 current jobs, and other slave has less than 5, send to not optimized slave.
 			String chosenSlave = null;
-			if(jobType.equalsIgnoreCase("A")) {
-				if(slaveAJobs < 5) {
-					//send to slave A - clientSocket2
-					out2.println(job);
-					chosenSlave = "A";
-				}
-				else {
-					//send to slave b if slave b has less than 5 - clientSocket3
-					if(slaveBJobs < 5) {
-						out3.println(job);
-						chosenSlave = "B";
-					}
-					else {
-						//send to slave A
-						out2.println(job);
-						chosenSlave = "A";
-					}
-				}
-			}
-			else if(jobType.equalsIgnoreCase("B")) {
-				if(slaveBJobs < 5) {
-					//send to slave B
-					out3.println(job);
-					chosenSlave = "B";
-				}
-				else {
-					//send to slave A if slave a has less than 5
-					if(slaveAJobs < 5) {
-						out2.println(job);
-						chosenSlave = "A";
-					}
-					else {
-						//send to slave B
-						out3.println(job);
-						chosenSlave = "B";
-					}
-				}
-			}
-			
-			
-			//Master reads in job completion confirmation from slave
-			String isComplete;
-			if(chosenSlave.equals("A")) {
-				isComplete = in2.readLine();
-			}
-			else {
-				isComplete = in3.readLine();
-			}
-			
-			//Master alerts client that job is completed
-			out1.println("Job is complete!");
+			if (jobType.equalsIgnoreCase("A")) {
+                         if (slaveAJobs < 5) {
+                         out2.println(job);
+                          chosenSlave = "A";
+                         slaveAJobs++; // Increment job counter for Slave A
+                         } else if (slaveBJobs < 5) {
+                            out3.println(job);
+                        chosenSlave = "B";
+                        slaveBJobs++; // Increment job counter for Slave B
+                          } else {
+                          out2.println(job);
+                    chosenSlave = "A";
+                        slaveAJobs++; // Increment job counter for Slave A
+                  }
+                 } else if (jobType.equalsIgnoreCase("B")) {
+                  if (slaveBJobs < 5) {
+                   out3.println(job);
+                   chosenSlave = "B";
+                   slaveBJobs++; // Increment job counter for Slave B
+                  } else if (slaveAJobs < 5) {
+                       out2.println(job);
+                     chosenSlave = "A";
+                          slaveAJobs++; // Increment job counter for Slave A
+                   } else {
+                   out3.println(job);
+                          chosenSlave = "B";
+                               slaveBJobs++; // Increment job counter for Slave B
+                                 }
+                              }
+
+                // Master reads in job completion confirmation from slave
+              String isComplete;
+           if (chosenSlave.equals("A")) {
+               isComplete = in2.readLine();
+             slaveAJobs--; // Decrement job counter for Slave A
+           } else {
+              isComplete = in3.readLine();
+              slaveBJobs--; // Decrement job counter for Slave B
+             }
+
+            // Master alerts client that job is completed
+              out1.println("Job " + ID + " is complete on Slave " + chosenSlave);
+
 			
 			}
 			while(job != null);
