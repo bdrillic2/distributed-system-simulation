@@ -42,21 +42,15 @@ public class Client {
             //can add another random element for i if we want to randomize number of jobs.
             for(int i = 0; i < 20; i++){
                String type = rand.nextInt(2) == 0 ? "A" : "B";
-		 id++;
+               id++;
                 
-                 
-                
-                //first send job type to master
-        	    requestWriter.println(type);
-        	    //then id number
-        	    requestWriter.println(id);
-	     // Receive confirmation from master
-                String confirmation = responseReader.readLine();
-                if (confirmation != null) {
-                    System.out.println("Received confirmation from master: " + confirmation);
-                } else {
-                    System.err.println("No response from master for job: " + type + " " + id);
-                }
+		 //write job with type and id to master
+             Thread writer1 = new ClientToMasterThread(requestWriter, type, id);
+             writer1.start();
+               
+	     //Receive confirmation from master
+             Thread reader1 = new ClientFromMasterThread(responseReader, type, id);
+             reader1.start();
             }
         	
         	

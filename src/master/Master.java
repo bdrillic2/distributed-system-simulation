@@ -1,6 +1,7 @@
 package master;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -23,33 +24,42 @@ public class Master {
                       Socket clientSocket1 = serverSocket.accept();
                       Socket clientSocket2 = serverSocket.accept();
                       Socket clientSocket3 = serverSocket.accept();
+					 //Writes to client
                       PrintWriter out1 = createWriter(clientSocket1);
+					 //Writes to slave A
                       PrintWriter out2 = createWriter(clientSocket2);
+					 //Writes to slave B
                       PrintWriter out3 = createWriter(clientSocket3);
+					 //Reads from client
                       BufferedReader in1 = createReader(clientSocket1);
+					 //Reads from Slave A
                       BufferedReader in2 = createReader(clientSocket2);
+					 //Reads from Slave B
                       BufferedReader in3 = createReader(clientSocket3);
 			       ) {
 			//Counters to keep track of amount of current jobs for each slave
 			int slaveAJobs = 0;
 			int slaveBJobs = 0;
 			String job;
+			String chosenSlave = null;
+			String jobType;
+			String ID;
 			
 			do {
-			//Master reads in job from client - clientSocket1
-			job = in1.readLine();
-	               if (job == null || job.trim().isEmpty()) {
-                        System.err.println("Invalid job received from client. Ending connection.");
-                         break;
-                            }
-			
+			//reads in job from client
+			Thread listener1 = new MasterFromClientThread(in1, job);
+			listener1.start();
+			 if (job == null || job.trim().isEmpty()) {
+                 System.err.println("Invalid job received from client. Ending connection.");
+                  break;
+                     }
+			 
 			//Master determines job type (first character) and ID number (second word)
-			String jobType = job.substring(0, job.indexOf(" "));
-			String ID = job.split(" ")[1];
-			
-			//Master determines which slave to assign job to
-			//If the slave optimized for job has 5 current jobs, and other slave has less than 5, send to not optimized slave.
-			String chosenSlave = null;
+   			jobType = job.substring(0, job.indexOf(" "));
+   			ID = job.split(" ")[1];
+   			
+   		//Master determines which slave to assign job to
+		//If the slave optimized for job has 5 current jobs, and other slave has less than 5, send to not optimized slave.
 			if (jobType.equalsIgnoreCase("A")) {
                          if (slaveAJobs < 5) {
                          out2.println(job);
@@ -80,8 +90,7 @@ public class Master {
                                  }
                               }
              
-
-                // Master reads in job completion confirmation from slave
+              // Master reads in job completion confirmation from slave
               String isComplete;
            if ("A".equals(chosenSlave)) {
                isComplete = in2.readLine();
@@ -92,9 +101,8 @@ public class Master {
              }
 
             // Master alerts client that job is completed
-              out1.println("Job " + ID + " is complete on Slave " + chosenSlave);
-
-			
+           Thread writer = new MasterToClientThread(out1, id, chosenSlave);
+           writer.start();
 			}
 		while(job != null);
 		}
