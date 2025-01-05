@@ -24,15 +24,15 @@ class SlaveB {
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
 				BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
 				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))) {
-			String job = "job";
-			job = in.readLine();
-			if (job.equals("B")) {
-				TimeUnit.SECONDS.sleep(2);
-			} else if (job.equals("A")) {
-				TimeUnit.SECONDS.sleep(10);
-			} else {
-				throw new UnknownJobException();
-			}
+
+			// Slave reads in job from master
+			SlaveFromMasterThread listener = new SlaveFromMasterThread(in);
+			listener.start();
+
+			// Slave sends confirmation to master
+			SlaveToMasterThread writer = new SlaveToMasterThread(out);
+			writer.start();
+
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);
 			System.exit(1);
