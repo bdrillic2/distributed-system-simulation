@@ -1,4 +1,4 @@
-package distributed_system_simulation;
+package client;
 import java.io.*;
 
 public class ClientToMasterThread extends Thread{
@@ -14,7 +14,12 @@ public class ClientToMasterThread extends Thread{
 	}
 	
 	public void run() {
-	 //send job type and id to master
-    requestWriter.println(type + " " + id);
+		//send job type and id to master
+		synchronized(requestWriter) {
+			requestWriter.println(type + " " + id);
+		}
+    
+		//print confirmation message to console
+		System.out.println("Job ID: " + id + " Type: " + type + " sent to master server");
 	}
 }
