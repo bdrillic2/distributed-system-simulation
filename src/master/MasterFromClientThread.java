@@ -1,6 +1,7 @@
-package distributed_system_simulation;
+package master;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 
 //Thread reads job from client and writes to slave based on load balancing algorithm
 public class MasterFromClientThread extends Thread {
@@ -16,7 +17,12 @@ public class MasterFromClientThread extends Thread {
 	@Override
 	public void run() {
 		// Master reads in job from client - clientSocket1
-		job = reader.readLine();
+		try {
+			job = reader.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

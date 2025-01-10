@@ -1,4 +1,6 @@
-package distributed_system_simulation;
+package master;
+
+import java.io.PrintWriter;
 
 public class MasterToSlaveThread extends Thread {
 

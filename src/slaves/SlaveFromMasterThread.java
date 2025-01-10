@@ -1,5 +1,7 @@
-package distributed_system_simulation;
+package slaves;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class SlaveFromMasterThread extends Thread {
@@ -12,11 +14,24 @@ public class SlaveFromMasterThread extends Thread {
 
 	// Slave reads in job from master
 	public void run() {
-		String job = in.readLine();
+		String job = null;
+		try {
+			job = in.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		if (job.equals("B")) {
-			TimeUnit.SECONDS.sleep(2);
+			try {
+				TimeUnit.SECONDS.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		} else if (job.equals("A")) {
-			TimeUnit.SECONDS.sleep(10);
+			try {
+				TimeUnit.SECONDS.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		} else {
 			throw new UnknownJobException();
 		}

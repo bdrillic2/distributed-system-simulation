@@ -1,6 +1,7 @@
-package distributed_system_simulation;
+package master;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 
 public class MasterFromSlaveThread extends Thread {
 
@@ -12,7 +13,13 @@ public class MasterFromSlaveThread extends Thread {
 
 	public void run() {
 		// Read in confirmation from slave
-		String isComplete = reader.readLine();
+		String isComplete = null;
+		try {
+			isComplete = reader.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println(isComplete);
 	}
 }
