@@ -30,26 +30,18 @@ public class Client {
                 new BufferedReader(
                     new InputStreamReader(System.in))
         ) {
-        	//initialize boolean variable to check whether to continue generating jobs
-        	boolean keepGoing = true;
-        	//initialize Random object
-        	Random rand = new Random();
+    		System.out.println("In Client");
+    		//pass in identity to master
+    		requestWriter.println("CLIENT initialized");
+    		System.out.println("Identity sent");
         	
-        	while(keepGoing) {
-        		//randomly generate id for a job
-        		int id = rand.nextInt(Integer.MAX_VALUE);
-        		
-        		//randomly generate if job is type A or B
-        		String type = rand.nextInt(2) == 0 ? "A" : "B";
-        		
-        		//pass info to thread to write to master
-        		Thread writer = new ClientToMasterThread(requestWriter, type, id);
-        		writer.start();
-        		
-        		//create thread to receive confirmation from master that job is complete
-        		Thread reader = new ClientFromMasterThread(responseReader, type, id);
-        		reader.start();
-        	}
+        	//pass info to thread to write to master
+        	Thread writer = new ClientToMasterThread(requestWriter);
+        	writer.start();
+        	
+        	//create thread to receive confirmation from master as each job is complete
+        	Thread reader = new ClientFromMasterThread(responseReader);
+        	reader.start();
       
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);

@@ -10,6 +10,10 @@ import java.util.concurrent.TimeUnit;
 
 class SlaveB {
 	public static void main(String[] args) throws InterruptedException {
+		
+		// Hardcode in IP and Port here
+    	args = new String[] {"127.0.0.1", "30121"};
+    	
 		// will connect here
 		if (args.length != 2) {
 			System.err.println("Usage: java clientCode <host name> <port number>");
@@ -23,15 +27,17 @@ class SlaveB {
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
 				BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))) {
+				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+		) {
+			System.out.println("In Slave B");
+			
+    		//pass in identity to master
+    		out.println("SLAVE B");
+    		System.out.println("Identity sent");
 
 			// Slave reads in job from master
-			SlaveFromMasterThread listener = new SlaveFromMasterThread(in);
+			SlaveFromMasterThread listener = new SlaveFromMasterThread(in, "B", out);
 			listener.start();
-
-			// Slave sends confirmation to master
-			SlaveToMasterThread writer = new SlaveToMasterThread(out);
-			writer.start();
 
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);

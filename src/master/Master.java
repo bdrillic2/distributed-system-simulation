@@ -7,128 +7,115 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Master {
 
 	public static void main(String[] args) throws IOException {
 
-		if (args.length != 2) {
+		// Hard code in port number if necessary:
+		args = new String[] { "30121" };
+    	
+		if (args.length != 1) {
 			System.err.println("Usage: java clientCode <host name> <port number>");
 			System.exit(1);
 		}
 		int portNumber = Integer.parseInt(args[0]);
 
-		try (ServerSocket serverSocket = new ServerSocket(portNumber);
-				Socket clientSocket1 = serverSocket.accept();
-				Socket clientSocket2 = serverSocket.accept();
-				Socket clientSocket3 = serverSocket.accept();
-				// Writes to client
-				PrintWriter out1 = createWriter(clientSocket1);
-				// Writes to slave A
-				PrintWriter out2 = createWriter(clientSocket2);
-				// Writes to slave B
-				PrintWriter out3 = createWriter(clientSocket3);
+		try (
+				ServerSocket serverSocket = new ServerSocket(portNumber);
+				// Establish connections with client and slaves
+				Socket clientSocket = serverSocket.accept();
+				Socket slaveSocket1 = serverSocket.accept();
+				Socket slaveSocket2 = serverSocket.accept();
 				
-				// Reads from client
-				BufferedReader in1 = createReader(clientSocket1);
-				// Reads from Slave A
-				BufferedReader in2 = createReader(clientSocket2);
-				// Reads from Slave B
-				BufferedReader in3 = createReader(clientSocket3);) {
-			// Counters to keep track of amount of current jobs for each slave
+				// Set up BufferedReaders
+				BufferedReader readClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				BufferedReader readSlaveA = new BufferedReader(new InputStreamReader(slaveSocket1.getInputStream()));
+				BufferedReader readSlaveB = new BufferedReader(new InputStreamReader(slaveSocket2.getInputStream()));
+				
+				// Writes to client
+				PrintWriter writeClient = new PrintWriter(clientSocket.getOutputStream(), true);
+				// Writes to slave A
+				PrintWriter writeSlaveA = new PrintWriter(slaveSocket1.getOutputStream(), true);
+				// Writes to slave B
+				PrintWriter writeSlaveB = new PrintWriter(slaveSocket2.getOutputStream(), true);
+			) {
 			
-			int slaveAJobs = 0;
-			int slaveBJobs = 0;
 			
-			String job;
+			String testRead = readClient.readLine();
+			System.out.println("Test read: " + testRead);
 			
-			String chosenSlave = null;
-			String jobType;
-			String ID;
+    		
+			System.out.println("In Master - connections with clients set up");
 
-			PrintWriter chosenWriter;
+			Queue<String> jobQueue = new LinkedList<>();
+			
+			// initialize thread that reads in job from client and adds them to job queue
+			Thread jobListener = new MasterFromClientThread(readClient, jobQueue);
+			jobListener.start();
+			
+			// Strings to hold job in front of queue and job's info and determine which slave to send it to
+			String job;
+		    char jobType;
+			String ID;
+			
+			// Use custom IntegerWrappers to keep track of amount of current jobs for each slave
+			// ensuring that the number can be updated in a thread safe way within the thread objects themselves
+			IntegerWrapper slaveAJobs = new IntegerWrapper(0);
+			IntegerWrapper slaveBJobs = new IntegerWrapper(0);
+
+			// Initialize chosenWriter arbitrarily to workaround Eclipse technical requirements
+			PrintWriter chosenWriter = writeSlaveA;
+			
+			// Initialize MasterFromSlaveThread threads to listen out for job confirmations from slaves
+			MasterFromSlaveThread slaveAConfirmation = new MasterFromSlaveThread("A", readSlaveA, slaveAJobs, writeClient);
+			slaveAConfirmation.start();
+			MasterFromSlaveThread slaveBConfirmation = new MasterFromSlaveThread("B", readSlaveB, slaveBJobs, writeClient);
+			slaveBConfirmation.start();
 
 			do {
-				// reads in job from client
-				Thread listener1 = new MasterFromClientThread(in1, job);
-				listener1.start();
-				if (job == null || job.trim().isEmpty()) {
-					System.err.println("Invalid job received from client. Ending connection.");
-					break;
+				// remove first job from queue using synchronized to ensure no data corruption
+				synchronized(jobQueue) {
+					job = jobQueue.poll();
 				}
-
+				
 				// Master determines job type (first character) and ID number (second word)
-				jobType = job.substring(0, job.indexOf(" "));
-				ID = job.split(" ")[1];
-
+				jobType = job.charAt(0);
+				ID = job.substring(2);
+				
 				// Master determines which slave to assign job to
 				// If the slave optimized for job has 5 current jobs, and other slave has less
-				// than 5, send to not optimized slave. If both hav 5+, send to optimized slave.
-				if (jobType.equalsIgnoreCase("A")) {
-					if (slaveAJobs < 5) {
-						chosenWriter = out2;
-						chosenSlave = "A";
-						slaveAJobs++; // Increment job counter for Slave A
-					} else if (slaveBJobs < 5) {
-						chosenWriter = out3;
-						chosenSlave = "B";
-						slaveBJobs++; // Increment job counter for Slave B
+				// than 5, send to not optimized slave. If both have 5+, send to optimized slave.
+				switch(jobType) {
+				case 'A':
+					if (slaveAJobs.getValue() > 5 && slaveBJobs.getValue() < 5) {
+						chosenWriter = writeSlaveB;
+						slaveBJobs.increment(); // Increment job counter for Slave B
 					} else {
-						chosenWriter = out2;
-						chosenSlave = "A";
-						slaveAJobs++; // Increment job counter for Slave A
+						chosenWriter = writeSlaveA;
+						slaveAJobs.increment(); // Increment job counter for Slave A
 					}
-				} else if (jobType.equalsIgnoreCase("B")) {
-					if (slaveBJobs < 5) {
-						chosenWriter = out3;
-						chosenSlave = "B";
-						slaveBJobs++; // Increment job counter for Slave B
-					} else if (slaveAJobs < 5) {
-						chosenWriter = out2;
-						chosenSlave = "A";
-						slaveAJobs++; // Increment job counter for Slave A
+					break;
+				case 'B':
+					if (slaveBJobs.getValue() > 5 && slaveAJobs.getValue() < 5) {
+						chosenWriter = writeSlaveA;
+						slaveAJobs.increment(); // Increment job counter for Slave A
 					} else {
-						chosenWriter = out3;
-						chosenSlave = "B";
-						slaveBJobs++; // Increment job counter for Slave B
+						chosenWriter = writeSlaveB;
+						slaveBJobs.increment(); // Increment job counter for Slave B
 					}
-				}
-				else {
-					// Invalid job type
-					return;
+					break;
 				}
 
 				// Send job to slave
 				MasterToSlaveThread assignment = new MasterToSlaveThread(chosenWriter, job);
 				assignment.start();
 
-				BufferedReader chosenReader;
-
-				// Master reads in job completion confirmation from slave
-				if ("A".equals(chosenSlave)) {
-					chosenReader = in2;
-					slaveAJobs--; // Decrement job counter for Slave A
-				} else {
-					chosenReader = in3;
-					slaveBJobs--; // Decrement job counter for Slave B
-				}
-
-				MasterFromSlaveThread confirmation = new MasterFromSlaveThread(chosenReader);
-				confirmation.start();
-
-				// Master alerts client that job is completed
-				Thread writer = new MasterToClientThread(out1, ID, chosenSlave);
-				writer.start();
-			} while (job != null);
+			} while(!jobQueue.isEmpty());
 		}
-	}
-
-	private static PrintWriter createWriter(Socket socket) throws IOException {
-		return new PrintWriter(socket.getOutputStream(), true);
-	}
-
-	private static BufferedReader createReader(Socket socket) throws IOException {
-		return new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 
 }

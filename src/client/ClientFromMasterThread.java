@@ -4,35 +4,33 @@ import java.io.*;
 public class ClientFromMasterThread extends Thread {
 
 	private BufferedReader reader;
-	private String type;
-	private int id;
 	
-	public ClientFromMasterThread(BufferedReader reader, String type, int id) {
+	public ClientFromMasterThread(BufferedReader reader) {
 		this.reader = reader;
-		this.type = type;
-		this.id = id;
 	}
 	
 	public void run() {
-		//read in message from server that job is complete
+		
+		System.out.println("In ClientFromMasterThread");
+		
+		//initialize boolean to true that while loop should continue executing
+		boolean keepGoing = true;
+		
+		//read in each message from server that job is complete as it comes in
 		String response = null;
 		
-		try {
-			synchronized(reader) {
-				response = reader.readLine();
-			}
-			
-			 if (response == null) {
-				System.err.print("Connection lost.");
-					return;
-				}
+        try {
+        	while(keepGoing) {
+        		synchronized(reader) {
+        			response = reader.readLine();
+        			
+        			//display message to console
+        			System.out.println("SERVER SAYS: " + response);
+        		}
+        		
+        	}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//display message to console
-		System.out.println("Message type " + this.type + ", ID: " + this.id + ", " + response);
-		
 	}
 }

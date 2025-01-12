@@ -2,32 +2,37 @@ package master;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 
-//Thread reads job from client and writes to slave based on load balancing algorithm
+//Thread reads in job from client and adds it to queue to be processed
 public class MasterFromClientThread extends Thread {
 
 	private BufferedReader reader;
-	private String job;
-
-	public MasterFromClientThread(BufferedReader reader, String job) {
+	private Queue<String> jobQueue;
+	
+	public MasterFromClientThread(BufferedReader reader, Queue<String> jobQueue) {
 		this.reader = reader;
-		this.job = job;
+		this.jobQueue = jobQueue;
 	}
 
 	@Override
 	public void run() {
-		// Master reads in job from client - clientSocket1
-		try {
-			this.job = reader.readLine();
-			// Verify that job is valid
-			if (job == null || !job.matches("[A|B] \\d+")) {
-				System.err.print("Invalid job type!");
-				return;
+		System.out.println("In MasterFromClientThread");
+
+		boolean keepGoing = true;
+		// Master continuously reads in jobs from client and adds it to job queue
+		while(keepGoing) {
+			try {
+				String job = reader.readLine();
+				System.out.println("Job " + job + " received");
+				synchronized(jobQueue) {
+					jobQueue.add(job);
+				}
+				System.out.println("Job " + job + " added to queue");
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			System.out.println("Recieved job from client: " + this.job);
-		  } catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 

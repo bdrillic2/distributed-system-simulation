@@ -13,7 +13,12 @@ public class MasterToSlaveThread extends Thread {
 	}
 
 	public void run() {
+		System.out.println("In MasterToClientThread");
+		System.out.println("Sending Job " + job + "to slave");
+
 		// Send job to slave
-		writer.println(job);
+		synchronized(writer) {
+			writer.println(job);
+		}
 	}
 }
