@@ -28,6 +28,7 @@ public class Master {
 				PrintWriter out2 = createWriter(clientSocket2);
 				// Writes to slave B
 				PrintWriter out3 = createWriter(clientSocket3);
+				
 				// Reads from client
 				BufferedReader in1 = createReader(clientSocket1);
 				// Reads from Slave A
@@ -35,9 +36,12 @@ public class Master {
 				// Reads from Slave B
 				BufferedReader in3 = createReader(clientSocket3);) {
 			// Counters to keep track of amount of current jobs for each slave
+			
 			int slaveAJobs = 0;
 			int slaveBJobs = 0;
+			
 			String job;
+			
 			String chosenSlave = null;
 			String jobType;
 			String ID;
@@ -89,6 +93,10 @@ public class Master {
 						slaveBJobs++; // Increment job counter for Slave B
 					}
 				}
+				else {
+					// Invalid job type
+					return;
+				}
 
 				// Send job to slave
 				MasterToSlaveThread assignment = new MasterToSlaveThread(chosenWriter, job);
@@ -109,7 +117,7 @@ public class Master {
 				confirmation.start();
 
 				// Master alerts client that job is completed
-				Thread writer = new MasterToClientThread(out1, id, chosenSlave);
+				Thread writer = new MasterToClientThread(out1, ID, chosenSlave);
 				writer.start();
 			} while (job != null);
 		}

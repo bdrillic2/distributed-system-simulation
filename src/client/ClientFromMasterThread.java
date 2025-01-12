@@ -21,13 +21,18 @@ public class ClientFromMasterThread extends Thread {
 			synchronized(reader) {
 				response = reader.readLine();
 			}
+			
+			 if (response == null) {
+				System.err.print("Connection lost.");
+					return;
+				}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		//display message to console
-		System.out.println("SERVER SAYS: " + response);
+		System.out.println("Message type " + this.type + ", ID: " + this.id + ", " + response);
 		
 	}
 }

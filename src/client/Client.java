@@ -37,7 +37,7 @@ public class Client {
         	
         	while(keepGoing) {
         		//randomly generate id for a job
-        		int id = rand.nextInt();
+        		int id = rand.nextInt(Integer.MAX_VALUE);
         		
         		//randomly generate if job is type A or B
         		String type = rand.nextInt(2) == 0 ? "A" : "B";
