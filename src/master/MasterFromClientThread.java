@@ -18,8 +18,14 @@ public class MasterFromClientThread extends Thread {
 	public void run() {
 		// Master reads in job from client - clientSocket1
 		try {
-			job = reader.readLine();
-		} catch (IOException e) {
+			this.job = reader.readLine();
+			// Verify that job is valid
+			if (job == null || !job.matches("[A|B] \\d+")) {
+				System.err.print("Invalid job type!");
+				return;
+			}
+			System.out.println("Recieved job from client: " + this.job);
+		  } catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
