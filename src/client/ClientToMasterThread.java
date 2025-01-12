@@ -7,9 +7,11 @@ public class ClientToMasterThread extends Thread{
 	private PrintWriter requestWriter;
 	private String type;
 	private int id;
+	private int clientNum;
 	
-	public ClientToMasterThread(PrintWriter requestWriter) {
+	public ClientToMasterThread(PrintWriter requestWriter, int clientNum) {
 		this.requestWriter = requestWriter;
+		this.clientNum = clientNum;
 
 	}
 	
@@ -35,10 +37,10 @@ public class ClientToMasterThread extends Thread{
     		type = rand.nextInt(2) == 0 ? "A" : "B";
     		
     		//send job type and id to master
-    		requestWriter.println(type + " " + id);
+    		requestWriter.println(type + " " + id + " client " + clientNum);
     		
     		//print confirmation message to console
-    		System.out.println("Job ID: " + id + " Type: " + type + " sent to master server");
+    		System.out.println("Job ID: " + id + " Type: " + type + " from client " + clientNum + " sent to master server");
     		
     		stop++;
     	}

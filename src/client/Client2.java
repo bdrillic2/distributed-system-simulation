@@ -11,7 +11,7 @@ public class Client2 {
 
 	public static void main(String[] args) throws IOException {
 
-		// Hardcode in IP and Port here if required
+		// Hard code in IP and Port here if required
 		args = new String[] { "127.0.0.1", "30121" };
 
 		if (args.length != 2) {
@@ -33,7 +33,7 @@ public class Client2 {
 						new BufferedReader(new InputStreamReader(System.in))) {
 
 			// Pass info to thread to write to master
-			Thread writer = new ClientToMasterThread(requestWriter);
+			Thread writer = new ClientToMasterThread(requestWriter, 2);
 			writer.start();
 
 			// Create thread to receive confirmation from master as each job is complete

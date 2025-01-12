@@ -27,17 +27,20 @@ public class Master {
 		try (
 				ServerSocket serverSocket = new ServerSocket(portNumber);
 				// Establish connections with client and slaves
-				Socket clientSocket = serverSocket.accept();
+				Socket clientSocket1 = serverSocket.accept();
+				Socket clientSocket2 = serverSocket.accept();
 				Socket slaveSocket1 = serverSocket.accept();
 				Socket slaveSocket2 = serverSocket.accept();
 				
 				// Set up BufferedReaders
-				BufferedReader readClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				BufferedReader readClient1 = new BufferedReader(new InputStreamReader(clientSocket1.getInputStream()));
+				BufferedReader readClient2 = new BufferedReader(new InputStreamReader(clientSocket2.getInputStream()));
 				BufferedReader readSlaveA = new BufferedReader(new InputStreamReader(slaveSocket1.getInputStream()));
 				BufferedReader readSlaveB = new BufferedReader(new InputStreamReader(slaveSocket2.getInputStream()));
 				
-				// Writes to client
-				PrintWriter writeClient = new PrintWriter(clientSocket.getOutputStream(), true);
+				// Writes to clients
+				PrintWriter writeClient1 = new PrintWriter(clientSocket1.getOutputStream(), true);
+				PrintWriter writeClient2 = new PrintWriter(clientSocket2.getOutputStream(), true);
 				// Writes to slave A
 				PrintWriter writeSlaveA = new PrintWriter(slaveSocket1.getOutputStream(), true);
 				// Writes to slave B
@@ -48,14 +51,17 @@ public class Master {
 
 			Queue<String> jobQueue = new LinkedList<>();
 			
-			// initialize thread that reads in job from client and adds them to job queue
-			Thread jobListener = new MasterFromClientThread(readClient, jobQueue);
-			jobListener.start();
+			// initialize thread that reads in job from client 1 and adds them to job queue
+			Thread jobListener1 = new MasterFromClientThread(readClient1, jobQueue);
+			jobListener1.start();
+			
+			// initialize thread that reads in job from client 1 and adds them to job queue
+			Thread jobListener2 = new MasterFromClientThread(readClient2, jobQueue);
+			jobListener2.start();
 			
 			// Strings to hold job in front of queue and job's info and determine which slave to send it to
 			String job;
 		    char jobType;
-			String ID;
 			
 			// Use custom IntegerWrappers to keep track of amount of current jobs for each slave
 			// ensuring that the number can be updated in a thread safe way within the thread objects themselves
@@ -66,9 +72,9 @@ public class Master {
 			PrintWriter chosenWriter = writeSlaveA;
 			
 			// Initialize MasterFromSlaveThread threads to listen out for job confirmations from slaves
-			MasterFromSlaveThread slaveAConfirmation = new MasterFromSlaveThread("A", readSlaveA, slaveAJobs, writeClient);
+			MasterFromSlaveThread slaveAConfirmation = new MasterFromSlaveThread("A", readSlaveA, slaveAJobs, writeClient1, writeClient2);
 			slaveAConfirmation.start();
-			MasterFromSlaveThread slaveBConfirmation = new MasterFromSlaveThread("B", readSlaveB, slaveBJobs, writeClient);
+			MasterFromSlaveThread slaveBConfirmation = new MasterFromSlaveThread("B", readSlaveB, slaveBJobs, writeClient1, writeClient2);
 			slaveBConfirmation.start();
 
 			do {
@@ -79,7 +85,6 @@ public class Master {
 				
 				// Master determines job type (first character) and ID number (second word)
 				jobType = job.charAt(0);
-				ID = job.substring(2);
 				
 				String slaveType = null;
 				
