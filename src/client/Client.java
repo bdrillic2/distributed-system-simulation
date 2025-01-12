@@ -30,10 +30,6 @@ public class Client {
                 new BufferedReader(
                     new InputStreamReader(System.in))
         ) {
-    		System.out.println("In Client");
-    		//pass in identity to master
-    		requestWriter.println("CLIENT initialized");
-    		System.out.println("Identity sent");
         	
         	//pass info to thread to write to master
         	Thread writer = new ClientToMasterThread(requestWriter);

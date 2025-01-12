@@ -30,10 +30,6 @@ class SlaveB {
 				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
 		) {
 			System.out.println("In Slave B");
-			
-    		//pass in identity to master
-    		out.println("SLAVE B");
-    		System.out.println("Identity sent");
 
 			// Slave reads in job from master
 			SlaveFromMasterThread listener = new SlaveFromMasterThread(in, "B", out);

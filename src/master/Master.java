@@ -43,11 +43,6 @@ public class Master {
 				// Writes to slave B
 				PrintWriter writeSlaveB = new PrintWriter(slaveSocket2.getOutputStream(), true);
 			) {
-			
-			
-			String testRead = readClient.readLine();
-			System.out.println("Test read: " + testRead);
-			
     		
 			System.out.println("In Master - connections with clients set up");
 
@@ -86,6 +81,8 @@ public class Master {
 				jobType = job.charAt(0);
 				ID = job.substring(2);
 				
+				String slaveType = null;
+				
 				// Master determines which slave to assign job to
 				// If the slave optimized for job has 5 current jobs, and other slave has less
 				// than 5, send to not optimized slave. If both have 5+, send to optimized slave.
@@ -93,25 +90,29 @@ public class Master {
 				case 'A':
 					if (slaveAJobs.getValue() > 5 && slaveBJobs.getValue() < 5) {
 						chosenWriter = writeSlaveB;
+						slaveType = "B";
 						slaveBJobs.increment(); // Increment job counter for Slave B
 					} else {
 						chosenWriter = writeSlaveA;
+						slaveType = "A";
 						slaveAJobs.increment(); // Increment job counter for Slave A
 					}
 					break;
 				case 'B':
 					if (slaveBJobs.getValue() > 5 && slaveAJobs.getValue() < 5) {
 						chosenWriter = writeSlaveA;
+						slaveType = "A";
 						slaveAJobs.increment(); // Increment job counter for Slave A
 					} else {
 						chosenWriter = writeSlaveB;
+						slaveType = "B";
 						slaveBJobs.increment(); // Increment job counter for Slave B
 					}
 					break;
 				}
 
 				// Send job to slave
-				MasterToSlaveThread assignment = new MasterToSlaveThread(chosenWriter, job);
+				MasterToSlaveThread assignment = new MasterToSlaveThread(chosenWriter, job, slaveType);
 				assignment.start();
 
 			} while(!jobQueue.isEmpty());

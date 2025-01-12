@@ -36,7 +36,7 @@ public class SlaveFromMasterThread extends Thread {
 			String id = job.substring(2);
 			
 			try {
-				if(!jobType.equals("A") || !jobType.equals("B")) {
+				if(!jobType.equals("A") && !jobType.equals("B")) {
 					throw new UnknownJobException();
 				}
 				if(jobType.equals(slaveType)) {

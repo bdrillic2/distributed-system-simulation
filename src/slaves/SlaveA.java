@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 class SlaveA {
 	public static void main(String[] args) throws InterruptedException {
 		
-		// Hardcode in IP and Port here
+		// Hard code in IP and Port here
     	args = new String[] {"127.0.0.1", "30121"};
     	
 		// will connect here
@@ -30,10 +30,7 @@ class SlaveA {
 				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
 		) {
 			System.out.println("In Slave A");
-			
-    		//pass in identity to master
-    		out.println("SLAVE A");
-    		System.out.println("Identity sent");
+
     		
 			// Slave continuously reads in job from master
 			SlaveFromMasterThread listener = new SlaveFromMasterThread(in, "A", out);
